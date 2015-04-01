@@ -1,0 +1,32 @@
+Git/GitHub 使用筆記
+
+Git 有以下四種方法來存取遠端的Git伺服器：
+SSH 安全性最佳
+    git clone git@github.com:ihower/sandbox.git
+HTTP/HTTPS 速度最差，但能突破防火牆限制
+    git clone https://ihower@github.com/ihower/sandbox.git
+Git protocol 速度最快，但缺認證機制(因此只能做成唯讀)
+    git clone git://github.com/ihower/sandbox.git
+File 本機目錄 (有人用 Dropbox 分享 git init –bare –shared 目錄!! Crazy!!)
+    git clone file://path/to/repo.git
+
+[GitHub 設定]
+
+[Git 初始化]
+
+[從GitHub Clone 一份branch]
+  移動到本機想要存放此branch的repository目錄底下
+  +---------------------------------------------------------+
+  | $ git clone https://github.com/stephen1115/Testing.git  |
+  +---------------------------------------------------------+
+  repository 目錄底下會出現新的目錄Testing
+
+<<<<<<< HEAD
+============
+merge Testing 
+============
+=======
+---> Add from Master <---
+
+===> Add From Branch, Working <===
+>>>>>>> bc4fcf52c4af9cdd8b95ad5ff9f12749cf208e68
