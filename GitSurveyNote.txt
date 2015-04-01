@@ -1,0 +1,1090 @@
+本機的版本控制
+  Repository，版本庫，簡單的來說，它就是本機HDD上的一個目錄，而這個目錄中的所有文
+  件都可以被Git管理。也就是說版本庫中的每一個文件的異動，Git均能追縱。無論任何時
+  刻都能追縱文件的歴史版本，任何時刻都可以將文件“還原”。
+
+  Practice
+  建立一個版本庫
+  1. 建立一個新的目錄
+     ┌─────────────────────────────────────────────────────────────────────────┐
+     │ user@Localhost home$ mkdir gitRepo                                      │
+     │ user@Localhost home$ cd gitRepo                                         │
+     └─────────────────────────────────────────────────────────────────────────┘
+	 
+  2. 透過命令，git init，可以將此目錄初始化成Git可以管理的版本庫
+     ┌─────────────────────────────────────────────────────────────────────────┐
+     │ user@Localhost home$ git init                                           │
+     │ Initialized empty Git repository in /Users/home/gitRepo/.git/           │
+     └─────────────────────────────────────────────────────────────────────────┘
+
+	 至此，已經一個空的Git版本庫建立完成；此時觀察gitRepo目錄底下會發現多了一個 
+     .git的目錄，這個目錄是Git用來記錄當前版本庫異動的meta data的地方，
+     若不熟悉此目錄，建議不要自行修改此目錄底下的資料。
+
+  Practice
+  如何將文件加入版本庫
+  1. 為以後測試方便，先編寫一個index.html的文件，內容如下：
+     ┌─────────────────────────────────────────────────────────────────────────┐
+     │ user@Localhost home$ echo "New file for 1st git add and commit."        │
+	 │                            >> index.html                                │
+     └─────────────────────────────────────────────────────────────────────────┘
+	 
+  2. 透過命令，git add [File name]，可以將文件加入到版本庫中。
+     ┌─────────────────────────────────────────────────────────────────────────┐
+     │ user@Localhost home$ git add index.html                                 │
+     └─────────────────────────────────────────────────────────────────────────┘
+	 若在某個目錄內擁有了多個檔案及子目錄，並且要將它們全部都加入版本庫中，可以
+	 使用 git add . 指令。
+ 
+  3. 透過命令，git commit -m <comment> [File name]，確認文件要提交到Git。
+     -m : 此參數是本次提交的說明或註解，可以輸入任何內容
+     ┌─────────────────────────────────────────────────────────────────────────┐
+     │ user@Localhost home$ git commit -m "1st commit"                         │
+     │ [master (root-commit) ecc2398] 1st commit                               │
+     │ 1 file changed，1 insertions(+)                                         │
+     │ create mode 100644 index.html                                           │
+     └─────────────────────────────────────────────────────────────────────────┘
+
+  Note
+    1. 為什麼要把文件加入到Git版本庫中會需要2個命令，
+       分別是 add，commit，才能完成呢？原因是 "commit" 命令可以一次提交多個文件到
+       版本庫中，所以可以多次的 "add" 不同的文件，然後一次提交。
+       例如：
+           $ git add file_1.txt
+           $ git add file_2.txt
+           $ git add file_3.txt
+           $ git commit -m "add 3 files"
+    
+	2. 當文件已經被加入到版本庫後，是不是每一次的文件提交前都需要執行
+	   git add [File name]指令？其實不然，因為該文件已經被加入到版本庫中了， 
+	   所以可以不用每次都要告訴索引，所以，當你執行 
+	   git commit -m "comment" [File name]時，git會直接將在"工作區"的文件直接提交。 
+	   但若僅使用 git commit 指令而"不指定文件名稱"時，就只會將已經在stage中的異動
+	   提交，並不會將未加入stage的部分提交。
+
+    3. 所有的版本控制系統均只能追縱純文字檔，例如：txt file，HTML file，或是 
+       source code file，Git也不例外，系統能追縱每一次的異動，但，一旦遇上圖片或
+       2進位檔案，雖然系統也能管理，但卻無法追縱文件的變化，只能告訴使用者檔案有
+       異動，例如：從100 KB變成120 KB，但到底改了什麼，系統就不知道，也無法知道；
+       但，若是純文字檔，系統就能告訴使用者文件的變化，例如：第5行加了哪幾個字元
+       ，或是第8行刪了哪幾個字元。
+
+  Practice
+  文件異動後的追踪
+  1. 修改index.html文件
+     ┌─────────────────────────────────────────────────────────────────────────┐
+     │ New file for 1st git add and commit.                                    │
+     │  >> =====================================                               │
+     │  >> Updated for document modify trace.                                  │
+     └─────────────────────────────────────────────────────────────────────────┘
+
+  2. 執行git status，查看執行後的結果
+     ┌─────────────────────────────────────────────────────────────────────────┐  
+     │ user@Localhost home$ git status                                         │
+     │  # On branch working                                                    │
+     │  # Changes not staged for commit:                                       │
+     │  #   (use "git add <file>..." to update what will be committed)         │
+     │  #   (use "git checkout -- <file>..." to discard changes in working     │
+     │	#    directory)                                                        │
+     │  #                                                                      │ 
+     │  #   modified:   index.html                                             │ 
+	 │  #                                                                      │ 
+     │  no changes added to commit (use "git add" and/or "git commit -a")      │ 
+     └─────────────────────────────────────────────────────────────────────────┘
+
+      git status 可以讓使用者隨時掌握版本庫的狀態，所以由剛剛的執行結果，可以發現
+      index.html已經被修改過了，但是沒有提交修改。
+	  
+   3. 執行git diff可以比較出檔案異動了哪些內容
+     ┌─────────────────────────────────────────────────────────────────────────┐     
+     │  user@Localhost home$ git diff                                          │ 
+	 │ diff --git a/index.html b/index.html                                    │ 
+     │ index 0a3195c..0874ddd 100644                                           │ 
+     │ --- a/index.html                                                        │ 
+     │ +++ b/index.html                                                        │ 
+     │ @@ -1 +1,3 @@                                                           │ 
+     │ New file for 1st git add and commit.                                    │ 
+     │ +=====================================                                  │ 
+     │ +Updated for document modify trace.                                     │ 
+     └─────────────────────────────────────────────────────────────────────────┘
+	   
+   4. 確認了異動的內容後，就可以提交修改到版本庫了
+     ┌─────────────────────────────────────────────────────────────────────────┐     
+     │  user@Localhost home$ git add index.html                                │
+     └─────────────────────────────────────────────────────────────────────────┘
+	  
+      再執行一次 git status
+     ┌─────────────────────────────────────────────────────────────────────────┐     
+     │  user@Localhost home$ git status                                        │
+     │  # On branch working                                                    │
+     │  # Changes to be committed:                                             │ 
+     │  #   (use "git reset HEAD <file>..." to unstage)                        │ 
+     │  #                                                                      │ 
+     │  #   modified:   index.html                                             │
+     │  #                                                                      │ 
+     └─────────────────────────────────────────────────────────────────────────┘
+      git status 顯示了將要提交的修改，包括index.html，再來就可以提交了。
+	  
+   5. git commit -m "commit for modify trace."
+      其實也可以再執行一次git status來確認目前已經沒有需要提交的修改，
+      工作目錄是clean的。
+     ┌─────────────────────────────────────────────────────────────────────────┐     	  
+     │  user@Localhost home$ git status                                        │ 
+     │  # On branch working                                                    │ 
+     │  nothing to commit，working directory clean                             │ 
+     └─────────────────────────────────────────────────────────────────────────┘
+
+  Practice
+  文件版本退回
+  追踪版本歴史記錄
+  1. 對文件readme.txt再次進行修改
+     ┌─────────────────────────────────────────────────────────────────────────┐     	  
+     │ New file for 1st git add and commit.                                    │ 
+     │ =====================================                                   │ 
+     │ Updated for document modify trace.                                      │ 
+     │ >> =====================================                                │ 
+     │ >> Updated for history trace.                                           │ 
+     └─────────────────────────────────────────────────────────────────────────┘
+
+  2. 截至目前為止，總共提交了三個版本到Git版本庫中。
+     版本1: 1st commit
+	     New file for 1st git add and commit.
+
+     版本2: commit for modify trace.
+         New file for 1st git add and commit.
+         =====================================
+         Updated for document modify trace.
+		 
+     版本3: commit for history trace.
+	     New file for 1st git add and commit.
+         =====================================
+         Updated for document modify trace.
+         =====================================
+         Updated for history trace.
+
+     若想要查看修改的歴史記錄，可以使用git log這個命令，
+     git log 命令會顯示最近到最遠的提交註釋。
+	 ┌─────────────────────────────────────────────────────────────────────────┐
+     │user@Localhost home$ git log                                             │
+     │commit 39862cf323eb314ec85cadd2eb7769ed84dec5d8                          │
+     │Author: Stephen Chen <mingyi.chen@gmail.com>                             │
+     │Date:   Wed Nov 26 18:34:21 2014 +0800                                   │
+     │                                                                         │
+     │    commit for history trace.                                            │
+     │                                                                         │
+     │commit 5d79abe63aa41c4d6dfcb4936c49cc937dd1c31c                          │
+     │Author: Stephen Chen <mingyi.chen@gmail.com>                             │
+     │Date:   Wed Nov 26 18:25:56 2014 +0800                                   │
+     │                                                                         │
+     │    commit for modify trace.                                             │
+     │                                                                         │
+     │commit d0125de3b17fa0c9cbecdf2567d15eae9646e7d1                          │
+     │Author: Stephen Chen <mingyi.chen@gmail.com>                             │
+     │Date:   Wed Nov 26 18:07:31 2014 +0800                                   │
+     │                                                                         │
+     │    1st commit                                                           │
+     └─────────────────────────────────────────────────────────────────────────┘
+
+     若加上 --pretty=oneline 就只會看到一行訊息
+	 ┌─────────────────────────────────────────────────────────────────────────┐
+	 │ 39862cf323eb314ec85cadd2eb7769ed84dec5d8 commit for history trace.      │ 
+     │ 5d79abe63aa41c4d6dfcb4936c49cc937dd1c31c commit for modify trace.       │ 
+     │ d0125de3b17fa0c9cbecdf2567d15eae9646e7d1 1st commit                     │ 
+     └─────────────────────────────────────────────────────────────────────────┘
+     最前面的一串數字是commit ID，這是一串16進位表示的字串，使用SHA1算出來的字串
+     ，而為什麼要使用這麼大一串字串當ID呢？原因在於Git是一個分散式系統，若遇上多
+     人協作的專案時，多人同時在同一個版本庫中工作，就要避免有相同的ID產生，而造成
+     衝突。
+
+  Practice
+  版本退回
+  在Git中，用HEAD表示目前最近版，也就是最近的提交，所以，
+  上一個版本表示成 HEAD^
+  上二個版本表示成 HEAD^^
+  上100個版本表示成 HEAD～100
+
+  若要將當前append GPL退回到上一個版本 add distributed，可以使用命令 git reset
+  ┌─────────────────────────────────────────────────────────────────────────┐
+  │ user@Localhost home$ git reset --hard HEAD^                             │ 
+  │ HEAD is now at 5d79abe commit for modify trace.                         │ 
+  └─────────────────────────────────────────────────────────────────────────┘
+  可以用cat index.html 查看內容是否退回前一版本。
+  ┌─────────────────────────────────────────────────────────────────────────┐
+  │ New file for 1st git add and commit.                                    │ 
+  │ =====================================                                   │ 
+  │ Updated for document modify trace.                                      │ 
+  └─────────────────────────────────────────────────────────────────────────┘ 
+  再用git log 查看目前版本庫中的狀態
+  ┌─────────────────────────────────────────────────────────────────────────┐
+  │ user@Localhost home$ git log                                            │ 
+  │ commit 5d79abe63aa41c4d6dfcb4936c49cc937dd1c31c                         │ 
+  │ Date:   Wed Nov 26 18:25:56 2014 +0800                                  │ 
+  │                                                                         │ 
+  │ commit for modify trace.                                                │ 
+  │                                                                         │ 
+  │ commit d0125de3b17fa0c9cbecdf2567d15eae9646e7d1                         │ 
+  │ Author: Stephen Chen <mingyi.chen@gmail.com>                            │ 
+  │ Date:   Wed Nov 26 18:07:31 2014 +0800                                  │ 
+  │                                                                         │ 
+  │ 1st commit                                                              │ 
+  │                                                                         │ 
+  └─────────────────────────────────────────────────────────────────────────┘ 
+        
+  所以最近的commit for modify trace.的版本已經消失了！
+  若想要再回復剛剛commit for modify trace.的這個版本要如何處理？
+  答案是，只要找到commit for modify trace.這個版本的commit ID即可，Git提供了
+  一個命令，
+  git reflog，用來記錄使用者的每一次命令。
+  ┌─────────────────────────────────────────────────────────────────────────┐
+  │ user@Localhose home$ git reflog                                         │ 
+  │ 5d79abe HEAD@{0}: reset: moving to HEAD^                                │ 
+  │ 39862cf HEAD@{1}: commit: commit for history trace.                     │ 
+  │ 5d79abe HEAD@{2}: commit: commit for modify trace.                      │
+  │ d0125de HEAD@{3}: commit (initial): 1st commit                          │  
+  └─────────────────────────────────────────────────────────────────────────┘ 
+  最前面的數字就是commit ID，所以找到commit ID為2bc7001
+  執行
+  ┌─────────────────────────────────────────────────────────────────────────┐
+  │ user@Localhose home$ git reset --hard 39862cf                           │ 
+  │ HEAD is now at 39862cf commit for history trace.                        │ 
+  └─────────────────────────────────────────────────────────────────────────┘ 
+  PS. commit ID不需要全部輸入，只需要輸入前面幾碼即可。
+  在Git內部是用指針指向當前版本，所以版本退回的速度很快，例如範例，
+  僅是把指針HEAD指向commit for history trace.。
+   
+      ┌────┐
+      │HEAD│
+      └────┘
+         │     
+         +────＞ █ commit for history trace.
+                 │
+                 █ commit for modify trace.
+                 │
+                 █ 1st commit
+    
+  退回上一個版本
+
+      ┌────┐
+      │HEAD│
+      └────┘ 
+         │    
+         │       █ commit for history trace.
+         │       │
+         +────＞ █ commit for modify trace.
+                 │
+                 █ 1st commit
+
+  工作區和暫存區
+  工作區，WORKING DIRECTORY，指的是機器上能看到的目錄，例如：
+  版本庫，Repository，在工作區中有一個隱藏目錄，.git，就是Git的版本庫。
+  版本庫中存放了不少資料，但其中有幾項需要了解：
+  A. Stage暫存區
+  B. Git創建的第一個分支，master
+  C. 以及指向master的一個指針，HEAD
+
+  ┌───工作區────┐         ┌─── 版本庫 ──────────────────────────────────────┐ 
+  │             │         │                                                 │
+  │ SurveyGit   │         │                              ┌────┐             │
+  │   +         │         │                              │HEAD│──+          │
+  │   │         │         │                              └────┘  │          │
+  │   │         │         │                                      v          │
+  │   │         │         │  ┌───Stage────┐             ┌──────Master────┐  │
+  │   │         │  add    │  │            │             │                │  │
+  │   +--> git  +──────────＞│            │             │                │  │
+  │   │         │         │  │            │   COMMIT    │                │  │
+  │   │         │         │  │            +───────────＞│                │  │
+  │   +-->      │         │  │            │             │                │  │
+  │             │         │  │            │             │                │  │
+  │             │         │  │            │             │                │  │
+  │             │         │  │            │             │                │  │
+  │             │         │  └────────────┘             └────────────────┘  │
+  │             │         │                                                 │
+  │             │         │                                                 │
+  └─────────────┘         └─────────────────────────────────────────────────┘
+  此圖呼應之前提及的，要將文件提交到Git的版本庫中需要2個步驟:
+  step 1. 用git add，實際上也就是將文件放到暫存區中
+  step 2. 用git commit，也就是將暫存區中所有的"修改"都提交到當前的分支。
+
+  總結來說，需要提交的所有文件異動都會存放在暫存區中，然後，
+  可以一次性的提交暫存區中的所有修改
+
+  Practice
+  1. 先對index.html進行修改
+     ┌─────────────────────────────────────────────────────────────────────────┐
+     │ New file for 1st git add and commit.                                    │ 
+     │ =====================================                                   │ 
+     │ Updated for document modify trace.                                      │ 
+     │ =====================================                                   │ 
+     │ Updated for history trace.                                              │ 
+     │ >> =====================================                                │ 
+     │ >> Updated for stage area test.                                         │ 
+     └─────────────────────────────────────────────────────────────────────────┘     
+ 	 
+  2. 在工作區中再新增一個home.html文件
+  
+  3. 執行 git status
+     ┌─────────────────────────────────────────────────────────────────────────┐
+     │ user @Localhost home$ git status                                        │
+     │ # On branch working                                                     │
+     │ # Changes not staged for commit:                                        │
+     │ #   (use "git add <file>..." to update what will be committed)          │
+     │ #   (use "git checkout -- <file>..." to discard changes in working      │
+	 │ #    directory)                                                         │
+     │ #                                                                       │
+     │ #	modified:   index.html                                             │
+     │ #                                                                       │
+     │ # Untracked files:                                                      │
+     │ #   (use "git add <file>..." to include in what will be committed)      │
+     │ #                                                                       │
+     │ #	home.html                                                          │
+     │ no changes added to commit (use "git add" and/or "git commit -a")       │
+     └─────────────────────────────────────────────────────────────────────────┘
+     Git顯示index.html被修改了，而 home.html尚未被添加過，
+     所以狀態仍為"Untracked"
+  
+  4. 使用兩次git add 將2個檔案都添加到暫存區
+  
+  5. 執行 git status
+     ┌─────────────────────────────────────────────────────────────────────────┐
+     │ user@Localhost home$ git status                                         │
+     │ # On branch working                                                     │
+     │ # Changes to be committed:                                              │
+     │ #   (use "git reset HEAD <file>..." to unstage)                         │
+     │ #                                                                       │
+     │ #	new file:   home.html                                              │
+     │ #	modified:   index.html                                             │
+     └─────────────────────────────────────────────────────────────────────────┘
+    
+     即暫 存區的狀態如下圖:
+     ┌───工作區────┐         ┌─── 版本庫 ─────────────────────────────────────┐
+     │             │         │                                                │
+     │             │         │                            ┌────┐              │
+     │             │         │                            │HEAD│──+           │
+     │             │         │                            └────┘  │           │
+     │             │         │                                    v           │
+     │             │         │   ┌───Stage────┐           ┌──────Master────┐  │
+     │  index.html │ git add │   │            │           │                │  │
+     │  home.html  +──────────＞ │ index.html │           │                │  │
+     │             │         │   │ home.html  │           │                │  │
+     │             │         │   │            │           │                │  │
+     │             │         │   │            │           │                │  │
+     │             │         │   │            │           │                │  │
+     │             │         │   │            │           │                │  │
+     │             │         │   │            │           │                │  │
+     │             │         │   └────────────┘           └────────────────┘  │
+     │             │         │                                                │
+     │             │         │                                                │
+     └─────────────┘         └────────────────────────────────────────────────┘
+  
+  6. 執行git commit -m "understand how stage works"
+     將暫存區的所有提交修改都提交到當前的分支
+  
+  7. 再執行一次git status 就會發現工作區是乾淨的。
+  
+     ┌───工作區────┐        ┌─── 版本庫 ───────────────────────────────────────┐
+     │             │        │                                                  │
+     │             │        │                              ┌────┐              │
+     │             │        │                              │HEAD│──+           │
+     │             │        │                              └────┘  │           │
+     │             │        │                                      v           │
+     │             │        │   ┌───Stage────┐             ┌──────Master────┐  │
+     │             │        │   │            │ git commit  │                │  │
+     │             │        │   │            +───────────＞│ index.html     │  │
+     │             │        │   │            │             │ home.html      │  │
+     │             │        │   │            │             │                │  │
+     │             │        │   │            │             │                │  │
+     │             │        │   │            │             │                │  │
+     │             │        │   │            │             │                │  │
+     │             │        │   │            │             │                │  │
+     │             │        │   └────────────┘             └────────────────┘  │
+     │             │        │                                                  │
+     │             │        │                                                  │
+     └─────────────┘        └──────────────────────────────────────────────────┘
+
+  Git管理的是“修改”
+  何謂修改？指的是對於文件的任何異動都算是修改，例如：新增一行，刪除一行，
+  更改了N個字元... 等都算是修改。
+  Git如何管理“修改”？可以進行以下測試
+  Practice
+  1. 針對readme.txt進行一次修改，內容如下：
+     ┌─────────────────────────────────────────────────────────────────────────┐
+     │ New file for 1st git add and commit.                                    │
+     │ =====================================                                   │
+     │ Updated for document modify trace.                                      │
+     │ =====================================                                   │
+     │ Updated for history trace.                                              │
+     │ =====================================                                   │
+     │ Updated for stage area test.                                            │
+     │ >> =====================================                                │
+     │ >> Updated for modify trace.                                            │
+     └─────────────────────────────────────────────────────────────────────────┘
+
+  2. git add index.html
+  
+  3. 再修改readme.txt
+     ┌─────────────────────────────────────────────────────────────────────────┐
+     │ New file for 1st git add and commit.                                    │
+     │ =====================================                                   │
+     │ Updated for document modify trace.                                      │
+     │ =====================================                                   │
+     │ Updated for history trace.                                              │
+     │ =====================================                                   │
+     │ Updated for stage area test.                                            │
+     │ =====================================                                   │
+     │ Updated for modify trace.                                               │
+     │ >> =====================================                                │
+     │ >> Updated more for modify trace.                                       │
+     └─────────────────────────────────────────────────────────────────────────┘
+
+  4. git commit -m "commit for tracing modify"
+  
+  5. git status
+     ┌─────────────────────────────────────────────────────────────────────────┐
+     │ user@Localhost home$ git status                                         │
+     │ # On branch working                                                     │
+     │ # Changes not staged for commit:                                        │
+     │ #   (use "git add <file>..." to update what will be committed)          │
+     │ #   (use "git checkout -- <file>..." to discard changes in working      │
+	 │ #    directory)                                                         │
+     │ #                                                                       │
+     │ #	modified:   index.html                                             │
+     │ no changes added to commit (use "git add" and/or "git commit -a")       │
+	 └─────────────────────────────────────────────────────────────────────────┘
+     會發現第二次修改(step 3)的內容沒有被提交，回顧剛才的操作
+     第一次修改 ﹣﹣＞ git add ﹣﹣＞ 第二次修改 ﹣﹣＞ git commit
+     由此可以了解當使用了git add，就會把工作區的第一次修改放入暫存區，
+     但第二次的修改並未被從工作區放入暫存區；所以只有第一次的修改被提交了
+     而第二次沒有。
+	 
+  6. 可以使用git diff HEAD -- index.html來查看工作區和版本庫中最新版的區別。
+     ┌─────────────────────────────────────────────────────────────────────────┐
+     │ user@Localhost home$ git diff HEAD -- index.html                        │
+     │ diff --git a/index.html b/index.html                                    │
+     │ index 6d74427..fc34f9d 100644                                           │
+     │ --- a/index.html                                                        │
+     │ +++ b/index.html                                                        │
+     │ @@ -7,3 +7,5 @@ Updated for history trace.                              │
+     │  Updated for stage area test.                                           │
+     │  =====================================                                  │
+     │  Updated for modify trace.                                              │
+     │ +=====================================                                  │
+     │ +Updated more for modify trace.                                         │
+     └─────────────────────────────────────────────────────────────────────────┘
+ 
+  7. 如何提交第二次修改呢？
+     可以再使用一次git add 然後再執行git commit
+     或者是
+     先add第一次修改，再add第二次修改，再下commit一併提交
+     第一次修 改 ﹣﹣＞ git add ﹣﹣＞ 第二次修改 ﹣﹣＞ git add ﹣﹣＞ git commit
+
+  取消修改
+  要取消修改時，會存在有2種情況：
+  1. 文件在工作區修改後，尚未被放到暫存區，所以，若取消修改，代表是要回到跟版本庫
+     一樣的狀態。
+  2. 文件的修改已經被加到暫存區了，所以，若要取消修改，就是退回暫存區之前的狀態，
+     也就是最後一次git add 前的狀態。
+  
+  Practice
+  1. 將index.html進行一些修改
+     ┌─────────────────────────────────────────────────────────────────────────┐
+     │ New file for 1st git add and commit.                                    │
+     │ =====================================                                   │
+     │ Updated for document modify trace.                                      │
+     │ =====================================                                   │
+     │ Updated for history trace.                                              │
+     │ =====================================                                   │
+     │ Updated for stage area test.                                            │
+     │ =====================================                                   │
+     │ Updated for modify trace.                                               │
+     │ =====================================                                   │
+     │ Updated more for modify trace.                                          │
+     │ >> =====================================                                │
+     │ >> Updated for canceling modify.                                        │
+     └─────────────────────────────────────────────────────────────────────────┘
+  
+  2. 執行git status，會發現Git告訴你，git checkout --file 可以抛棄工作區的修改
+     ┌─────────────────────────────────────────────────────────────────────────┐
+     │ user@Localhost home$ git status                                         │
+     │ # On branch working                                                     │
+     │ # Changes not staged for commit:                                        │
+     │ #   (use "git add <file>..." to update what will be committed)          │
+     │ #   (use "git checkout -- <file>..." to discard changes in working      │
+	 │ #    directory)                                                         │
+     │ #                                                                       │
+     │ #	modified:   index.html                                             │
+     │ #                                                                       │
+	 │ no changes added to commit (use "git add" and/or "git commit -a")       │
+	 │                                                                         │
+     │ user@Localhost home$ git checkout -- index.html                         │
+     └─────────────────────────────────────────────────────────────────────────┘
+	 
+  3. 執行cat index.html，可以發現剛剛對readme.txt的異動不見了。
+  
+  4. 再將剛剛步驟1對readme.txt的異動加回去，然後再執行git add index.html
+  
+  5. 使用git status查看，會發現Git告訴你，git reset HEAD readme.txt可以將暫存區中
+     的修改退回到工作區。
+     ┌─────────────────────────────────────────────────────────────────────────┐
+     │ user@Localhost home$ git status                                         │
+     │ # On branch working                                                     │
+     │ # Changes to be committed:                                              │
+     │ #   (use "git reset HEAD <file>..." to unstage)                         │
+     │ #                                                                       │
+     │ #	modified:   index.html                                             │
+     │ #                                                                       │
+     └─────────────────────────────────────────────────────────────────────────┘
+	 
+  6. 執行git reset HEAD index.html     
+     ┌─────────────────────────────────────────────────────────────────────────┐
+     │ user@Localhost home$ git reset HEAD index.html                          │
+     │ Unstaged changes after reset:                                           │
+     │ M	index.html                                                         │
+     └─────────────────────────────────────────────────────────────────────────┘
+
+  7. 再使用git status查看，可以發現暫存區是乾淨的，但是工作區有修改。
+     ┌─────────────────────────────────────────────────────────────────────────┐
+     │ user@Localhost home$ git status                                         │
+     │ # On branch working                                                     │
+     │ # Changes not staged for commit:                                        │
+     │ #   (use "git add <file>..." to update what will be committed)          │
+     │ #   (use "git checkout -- <file>..." to discard changes in working      │
+	 │ #    directory)                                                         │
+     │ #                                                                       │
+     │ #	modified:   index.html                                             │
+     │ #                                                                       │
+	 │ no changes added to commit (use "git add" and/or "git commit -a")       │
+     └─────────────────────────────────────────────────────────────────────────┘
+	 
+  8. 執行git checkout -- <file>來放棄工作區的修改。
+
+  刪除文件
+  若要刪除文件，通常只要在工作區找到要刪除的目標檔案，然後直接刪除即可。而在檔
+  案直接被刪除後，執行git status，Git會告訴你，哪些檔案被刪除了，因為工作區和版
+  本庫的狀態不一致了。
+  
+  一般在刪除文件時，通常會遇到以下兩種情況：
+  1. 若真的有需要刪除檔案，那麼執行以下2個步驟
+     step 1. git rm <file>
+     step 2. git commit -m "write something."
+     此時文件在版本庫中也被刪除了。
+	 
+  2. 若是不小心誤刪了檔案，但因為版本庫中還有一份，所以，
+     執行git checkout -- <file>，可以把版本庫的檔案替換到工作區，如此一來，
+     工作區和版本庫又一致了。
+
+  Practice for 1	 
+  1. 新增一個檔案，檔名為DeleteFile.txt
+  
+  2. 執行
+     ┌─────────────────────────────────────────────────────────────────────────┐
+     │ $ git add DeleteFile.txt                                                │
+     │ $ git commit -m "commit for deleting File" DeleteFile.txt               │
+     └─────────────────────────────────────────────────────────────────────────┘
+	 
+  3. 再執行刪除檔案RemoveFile.txt，然後再執行git status
+     ┌─────────────────────────────────────────────────────────────────────────┐
+     │ user@Localhost home$ rm DeleteFile.txt                                  │
+     │ user@Localhost home$ git status                                         │
+     │ # On branch working                                                     │
+     │ # Changes not staged for commit:                                        │
+     │ #   (use "git add/rm <file>..." to update what will be committed)       │
+     │ #   (use "git checkout -- <file>..." to discard changes in working      │
+	 │ #    directory)                                                         │
+     │ #                                                                       │
+     │ #	deleted:    DeleteFile.txt                                         │
+     │ #                                                                       │
+     └─────────────────────────────────────────────────────────────────────────┘
+	 
+  4. 執行git rm DeleteFile.txt和git commit -m "Deleting DeleteFile.txt"
+     ┌─────────────────────────────────────────────────────────────────────────┐
+     │ user@Localhost$ git rm DeleteFile.txt                                   │
+     │ rm 'DeleteFile.txt'                                                     │
+     │ user@Localhost$ git commit -m "Deleting DeleteFile.txt"                 │
+     │ [master 5ca6256] Deleting DeleteFile.txt                                │
+     │ 1 file changed, 0 insertions(+), 0 deletions(-)                         │
+     │ delete mode 100644 DeleteFile.txt                                       │
+     └─────────────────────────────────────────────────────────────────────────┘
+	 
+  5. 會連版本庫中的該文件也一併刪除。
+ 
+  Practice for 2
+  1. 新增一個檔案，檔名為RemoveFile.txt
+  
+  2. 執行
+     ┌─────────────────────────────────────────────────────────────────────────┐
+     │ $ git add RemoveFile.txt                                                │
+     │ $ git commit -m "commit for Removed RemoveFile" RemoveFile.txt          │
+     └─────────────────────────────────────────────────────────────────────────┘
+	 
+  3. 直接刪除檔案RemoveFile.txt，再執行git status查看
+     ┌─────────────────────────────────────────────────────────────────────────┐
+     │ user@Localhost home$ rm RemoveFile.txt                                  │
+     │ user@Localhost home$ git status                                         │
+     │ # On branch working                                                     │
+     │ # Changes not staged for commit:                                        │
+     │ #   (use "git add/rm <file>..." to update what will be committed)       │
+     │ #   (use "git checkout -- <file>..." to discard changes in working      │
+	 │ #    directory)                                                         │
+     │ #                                                                       │
+     │ #	deleted:    RemoveFile.txt                                         │
+     │ #                                                                       │
+     │ no changes added to commit (use "git add" and/or "git commit -a")       │
+     └─────────────────────────────────────────────────────────────────────────┘
+	 
+  4. 執行git checkout -- RemoveFile.txt
+     ┌─────────────────────────────────────────────────────────────────────────┐
+     │ user@Localhost home$ git checkout -- RemoveFile.txt                     │
+     └─────────────────────────────────────────────────────────────────────────┘
+  
+  Git分支
+  分支管理一
+  Git提供用戶建立屬於自己的分支，別人看不到；有了這樣的機制，你可以維持原來分支上
+  正常的工作進度，又可以有自已的分支供用戶自行debug或測試，待用戶自己分支中的工作
+  完成再合併回原來工作的分支，如此，即安全，又不影響別人工作。
+
+  分支的創建
+  Git將每一次的提交串成了一條時間線，而這條時間線就是一個分支。截至目前為止，我們
+  只在一條時間上工作，而在Git裡，這個分支稱為主分支，即master分支；而在此也要再說
+  明HEAD指標其實不是指向提交，而是指向master，master才是指向提交。所以，HEAD指向
+  的是當前的分支。使用以下圖示來說明：
+  
+                HEAD ─┐    
+                      ↓
+                    master
+                      ↓
+    █────────█────────█  
+  
+  最初master分支是一條線，每個方塊都是一個提交，master指向最初的提交，而HEAD是指
+  向master，由此可以確定當前的分支及當前分支的提交點。當我們創建新的分支時，
+  例如，Dev分支，Git會建立一個叫Dev的指標，指向master分支相同的提交，再把HEAD指向
+  Dev，表示當前分支在Dev上。
+
+                    master
+                      ↓
+    █────────█────────█  
+                      ↑
+                     Dev
+                      ↑ 
+                HEAD ─┘
+				
+  此時開始工作，而對於工作區所提出的修改和提交都是針對Dev分支，例如，工作區做了一
+  次的提交，Dev指標會往前走一步而master指標不會移動。
+  
+                    master
+                      ↓
+    █────────█────────█────────█  
+                               ↑
+                              Dev
+                               ↑ 
+                         HEAD ─┘
+						 
+  若Dev上的工作完成了，就可以把Dev合併到master上。
+  Git如何合併？就是直接把master指標指向Dev當前的提交，便完成了合併。
+  
+                         HEAD ─┐    
+                               ↓
+                             master
+                               ↓
+    █────────█────────█════════█  
+                               ↑
+                              Dev
+							  
+  合併後，可以視需求將Dev分支刪除，刪除後就只剩master分支了。
+  
+                         HEAD ─┐    
+                               ↓
+                             master
+                               ↓
+    █────────█────────█────────█  
+
+  Practice
+  1. 創建分支，可以執行以下2個指令
+     ┌─────────────────────────────────────────────────────────────────────────┐
+     │ # git branch dev                                                        │
+     │ # git checkout dev                                                      │
+     └─────────────────────────────────────────────────────────────────────────┘
+	 
+     也可以合併以2個指令
+	 
+     ┌─────────────────────────────────────────────────────────────────────────┐
+     │ # git checkout -b dev                                                   │
+     └─────────────────────────────────────────────────────────────────────────┘
+	 
+  2. 再使用 git branch 指令查看當前分支
+     ┌─────────────────────────────────────────────────────────────────────────┐
+     │ # git branch                                                            │
+     └─────────────────────────────────────────────────────────────────────────┘
+        * dev      <== 當前分支前面會有＊標識
+		
+  3. 將readme.txt 加入以下內容
+     Creating a new branch is quick.
+     再執行
+     ┌─────────────────────────────────────────────────────────────────────────┐
+     │ # git add index.html                                                    │
+     │ # git commit -m "branch test" index.html                                │
+     └─────────────────────────────────────────────────────────────────────────┘
+	 
+  4. 假設分支的工作完成了，切換回master分支
+     ┌─────────────────────────────────────────────────────────────────────────┐
+     │ # git checkout master                                                   │
+     └─────────────────────────────────────────────────────────────────────────┘
+     再查看readme.txt會發現剛剛添加的內容不見了，因為剛才是提交在Dev分支上。
+                 HEAD ─┐    
+                       ↓ 
+                     master
+                       ↓
+     █────────█────────█────────█  
+                                ↑
+                                Dev
+  5. 現在把Dev分支的結果合併到master分支上
+     ┌─────────────────────────────────────────────────────────────────────────┐
+     │ # git merge dev                                                         │
+     └─────────────────────────────────────────────────────────────────────────┘
+     合併後再check readme. txt內容，就可以看到和Dev分支的最近提交是一致的。
+	 
+  6. 刪除Dev分支
+     ┌─────────────────────────────────────────────────────────────────────────┐
+     │ # git branch -d Dev                                                     │
+     └─────────────────────────────────────────────────────────────────────────┘
+      再查看branch
+     ┌─────────────────────────────────────────────────────────────────────────┐
+     │ # git branch                                                            │
+     └─────────────────────────────────────────────────────────────────────────┘
+     就只剩master了
+
+  Git鼓勵使用分支完成某個任務後，合併完再刪掉；這和直接在master分支上工作效果一樣
+  ，但過程更安全。
+  ┌────────────────────────────────────────────────────────────────────────────┐
+  │ Fast-forward 指的是快進合併，也就是直接把master指向Dev分支的當前提交，但並 │
+  │ 不是每次都能使用Fast-forward。                                             │
+  └────────────────────────────────────────────────────────────────────────────┘
+
+  分支管理二
+  通常，分支在合併時，Git會使用"Fast Forward"模式，但這種模式在刪除分支之後，會丟
+  掉分支訊息。如果禁用"Fast Forward"模式，Git會在merge時，產生一個新的commit，所
+  以從分支歴史上就能看出分支訊息。
+  
+  --no-ff的合併方式
+  1. 建立並切換到新的分支dev
+     ┌─────────────────────────────────────────────────────────────────────────┐
+     │ # git checkout -b dev                                                   │
+     └─────────────────────────────────────────────────────────────────────────┘
+
+  2. 修改index.html並提交一個新的commit
+     ┌─────────────────────────────────────────────────────────────────────────┐
+     │ # git add index.html                                                    │
+     │ # git commit -m "add merge" index.html                                  │
+     └─────────────────────────────────────────────────────────────────────────┘
+
+  3. 切換回master
+     ┌─────────────────────────────────────────────────────────────────────────┐
+     │ # git check master                                                      │
+     └─────────────────────────────────────────────────────────────────────────┘
+
+  4. 合併分支dev
+     ┌─────────────────────────────────────────────────────────────────────────┐
+     │ # git merge --no-ff -m "merge with --no-ff" dev                         │
+     └─────────────────────────────────────────────────────────────────────────┘
+     因本次合併要建立一個新的commit，所以，加上-m參數，把commit描述加進去。
+     
+  5. 使用git log查看一下分支
+     ┌─────────────────────────────────────────────────────────────────────────┐
+     │ # git log --graph --pretty=online --abbrev-commit                       │
+     └─────────────────────────────────────────────────────────────────────────┘
+     不使用Fast Forward，merge後就會如下：
+                            HEAD ─┐    
+                                  ↓
+                                master
+                                  ↓
+     █────────█────────█──────────█  
+                        \        / 
+                         \     /
+                            █  
+                            ↑
+                           Dev
+  分支原則：
+  1. master分支應該是最穩定的，只用來發佈新版本，不應該拿這個分支來開發。
+  2. dev分支是不穩定的，所有人都在這個分支上工作開發，待開發完成再合併到master上
+     。所有人都可以有自已的分支，利用自已的分支來開發／測試，待工作完成後，再往
+     dev分支上合併即可。 
+
+  衝突解決
+  準備一個新的分支，feature1。
+  ┌────────────────────────────────────────────────────────────────────────────┐
+  │ # git checkout -b feature1                                                 │
+  └────────────────────────────────────────────────────────────────────────────┘
+  接著修改index.html在最後一行加上以下敍述
+  Creating a new branch is quick AND simple.
+  然後在feature1分支上提交修改
+  ┌────────────────────────────────────────────────────────────────────────────┐
+  │ # git add index.html                                                       │
+  │ # git commint -m "AND Simple"                                              │
+  └────────────────────────────────────────────────────────────────────────────┘
+  切換到master分支
+  ┌────────────────────────────────────────────────────────────────────────────┐
+  │ # git checkout master                                                      │
+  └────────────────────────────────────────────────────────────────────────────┘
+  此時Git會自動提醒用戶目前的分支比遠程origin分支要超前一個提交。
+  在master分支上，修改index.html，在最後一行加上以下敍述
+  Creating a new branch is quick & simple.
+  提交修改
+  ┌────────────────────────────────────────────────────────────────────────────┐
+  │ # git add index.html                                                       │
+  │ # git commit -m "& simple"                                                 │
+  └────────────────────────────────────────────────────────────────────────────┘
+  截至目前為止，master 和 feature1 分支都各有一個新的提交。
+                            H EAD ─┐    
+                                   ↓
+                                master
+                                  ↓
+     █────────█────────█──────────█
+                       │ 
+                       └──────────█ 
+                                   ↑
+                               feature1
+  在這種情況下無法使用Fast Forward合併，只能手動把個自的修改合併起來。
+
+  衝突發生
+  ┌────────────────────────────────────────────────────────────────────────────┐
+  │ # git merge feature1                                                       │
+  └────────────────────────────────────────────────────────────────────────────┘
+  Git會告訴我們readme.txt存在了衝突
+  ┌────────────────────────────────────────────────────────────────────────────┐
+  │ # git status                                                               │
+  └────────────────────────────────────────────────────────────────────────────┘
+  也可以告訴我們有衝突存在。
+  用什麼指令可以比對2個readme.txt的差異？
+
+  Git使用<<<<<，=====，>>>>>標記出不同分支的內容，此時應該是停留在master分支上，
+  所以直接修改master分支上的readme.txt，然後再merge featur1分支。
+
+  其實在專案開發過程中，每個開發人員都會有自己的分支，因此，以下有2個情境一定要熟
+  悉：
+  1. 把自己的dev-N分支往master分支上合併 ==> 將自己的修改提交到master
+  2. 把master往自己的dev-N分支上合併 ==> 取得別人的修改。
+                                       HEAD ─┐    
+                                             ↓
+                                           master
+                                              ↓
+     █────────█────────█──────────█──────────█
+                       │                     │
+                       └──────────█──────────┘ 
+                                  ↑
+                                feature1
+  ┌────────────────────────────────────────────────────────────────────────────┐
+  │ # git log --graph --pretty=online --abrev-commit                           │
+  └────────────────────────────────────────────────────────────────────────────┘
+  可以看到分支合併的情況。
+  再刪除feature1分支
+  ┌────────────────────────────────────────────────────────────────────────────┐
+  │ # git brance -d feature1                                                   │
+  └────────────────────────────────────────────────────────────────────────────┘
+
+  Bug分支
+  在軟體開發過程中，一定會常常有需要解bug的時候，也由於Git的分支非常強大並且不用
+  錢，所以，我們可以利用臨時建立一個新的分支來解bug，解完bug後，合併，然後再將臨
+  時建立的這個分支刪除。
+  
+  Practice
+  1. 臨時接到要解緊急的bug的通知後，可以建立一個新的分支，bug-101，來進行debug；
+     但是，目前正在進行的dev分支上的工作尚未提交：
+  ┌────────────────────────────────────────────────────────────────────────────┐
+  │   # git status                                                             │
+  └────────────────────────────────────────────────────────────────────────────┘
+  2. 並且也因為dev分支上的工作尚未完成，還不能進行提交，但bug要先解，所以，可以使
+     用stash這個命令來解決這個情況。
+     stash命令可以將當前的工作現場”儲藏“起來，等bug解完後再繼續工作。執行
+  ┌────────────────────────────────────────────────────────────────────────────┐
+  │  # git stash                                                               │
+  └────────────────────────────────────────────────────────────────────────────┘
+  3. 接下來要先確定要在哪個分支上解bug，假設需要在master分支上解bug，就從master上
+     建立新的分支。
+  ┌────────────────────────────────────────────────────────────────────────────┐
+  │   # git checkout master                                                    │
+  │   # git checkout -b bug-101                                                │
+  └────────────────────────────────────────────────────────────────────────────┘
+ 4. 假設解bug需要將readme.txt中的”Git is free software“改為
+     ”Git is a free software“，然後提交。
+  ┌────────────────────────────────────────────────────────────────────────────┐
+  │   # git add index.html                                                     │
+  │   # git commit -m "fix bug 101"                                            │
+  └────────────────────────────────────────────────────────────────────────────┘
+  5. 切換回master分支，再合併bug-101分支，最後刪除bug-101分支。
+  ┌────────────────────────────────────────────────────────────────────────────┐
+  │   # git checkout master                                                    │
+  │   # git merge --no-ff -m "merge bug fix 101" bug-101                       │
+  │   # git branck -d bug-101                                                  │
+  └────────────────────────────────────────────────────────────────────────────┘
+  6. 接著便可以切換回dev，繼續工作
+  ┌────────────────────────────────────────────────────────────────────────────┐
+  │   # git checkout dev                                                       │
+  │   # git stastus                                                            │
+  └────────────────────────────────────────────────────────────────────────────┘
+     發現工作區是乾淨的，剛剛的工作現場在哪兒？
+     可以使用 git stash list 查看
+     工作現場還在，只是被Git stash保存起來了。
+     以下有2種方式可以恢復：
+     A. # git stash apply
+     B. # git stash pop
+  7. 先使用git stash list查看一個有多個stash
+  ┌────────────────────────────────────────────────────────────────────────────┐
+  │  # git stash list                                                          │
+  │   stash@{0}:WIP on dev : 6224973 add merge.                                │
+  └────────────────────────────────────────────────────────────────────────────┘
+  8. 若有多次stash，可以指定恢復的stash
+  ┌────────────────────────────────────────────────────────────────────────────┐
+  │   # git stash apply stash@{0}                                              │
+  └────────────────────────────────────────────────────────────────────────────┘
+     使用stash apply恢復，恢復後，stash內容不會被刪除，需要用git stash drop來刪除。
+  9. 使用git stash pop就會在恢復stash的同時，也會把stash的內容也一併刪除。
+
+  以上的做法，是否有些矛盾？ master分支有了異動，在恢復dev分支時，會不會有問題？
+  不需要先把修改的內容先合併到dev?
+  但dev已經被stash，如何合併？
+
+  刪除分支
+  若因為新功能添加，我們會新建一個分支，feature，來開發新功能，完成后再合併，再刪
+  除分支feature。
+  
+  Practice
+  1. 建立一個新的分支，feature。
+  ┌────────────────────────────────────────────────────────────────────────────┐
+  │   # git checkout -b feature                                                │
+  └────────────────────────────────────────────────────────────────────────────┘
+  2. 開發完成後
+  ┌────────────────────────────────────────────────────────────────────────────┐
+  │   # git status                                                             │
+  │   # git add myJava.java                                                    │
+  │   # git commit -m "add feature myJava"                                     │
+  └────────────────────────────────────────────────────────────────────────────┘
+  3. 準備合併
+  ┌────────────────────────────────────────────────────────────────────────────┐
+  │   # git checkout dev                                                       │
+  └────────────────────────────────────────────────────────────────────────────┘
+  4. 突然決定不要這個功能了，那就刪除這個分支吧。
+  ┌────────────────────────────────────────────────────────────────────────────┐
+  │   # git branch -d feature                                                  │
+  └────────────────────────────────────────────────────────────────────────────┘
+     此時，Git會顯示錯誤，提示feature尚未合併；如果刪除將會丟失修改，若要強制刪除
+     ，可以使用
+  ┌────────────────────────────────────────────────────────────────────────────┐
+  │   # git branck -D feature                                                  │
+  └────────────────────────────────────────────────────────────────────────────┘
+  
+  遠程倉庫
+  Git是一個分散式的版本控制系統，同一個Git倉庫可以分散在各地不同的機器上，也就是
+  不同的機器都可以向原始的版本庫要一份clone；所以，每一台機器上的版本庫都和原始的
+  版本庫一樣，沒有主次的差別。
+
+  添加遠程庫，(使用GitHub)
+  1. 在GitHub上創建一個新的repository, 命名gitlab。
+  2. 建立成功後，GitHub會告訴你，gitlab這個倉庫目前是空的，我們可以從這個倉庫
+     clone新的倉庫出來，也可以把本地(local)的倉庫與之關聯，爾後即可以把本地倉庫的
+     內容推送到gitlab倉庫中。
+  3. 在本地的gitlab倉庫執行：
+     # git remote add origin git@github.com:userName/gitlab
+     添加後遠程倉庫的名字為origin，這是Git default遠程倉庫的名字，當然也是可以按
+     自已的需求修改。
+  4. git push -u origin master，可以將本地倉庫當前分支，master，的內容推送到遠程
+     -u ：git會把本地的master分支和遠程的master分支關聯在一起。
+  5. 確認GitHub中 gitlab 的內容與本地的相同。
+  6. 爾後只要執行 git push origin master，就會把本地master分支最新的修改推送到
+     GitHub。
+
+  Clone遠程倉庫
+  1. 先在GitHub上建立一個新的倉庫，命名為 gitskills。
+  2. 勾選Initialize this repository with a README。這樣GitHub會自動幫我們建立一個
+     README文件。
+  3. git clone git@github.com:userName/gitskills.git
+     # cd gitskills
+     # ls
+     確認有沒有README.md File.
+
+  GitHub給出的URL不只一個，這是因為GitHub支援多種的通訊協定。
+
+  多人協作
+  要查看遠程庫的訊息，可以使用
+  # git remote 或 git remote -v (顯示抓取或推送的origin位址)
+
+  推送分支
+  將該分支上的所有提交推送到遠程庫，推送時要指定本地分支，這樣才能將該分支推送到
+  遠程庫的對應分支上，如：
+  # git push origin master
+  若要推送其他分支，比如：dev，則
+  # git push origin dev
+  並不是所有本朼分支都一定要推送到遠程，那麼，有哪些分支需要推送呢？
+  A. master分支是主要分支，因此時劇都要與遠程同步
+  B. dev分支是開發的分支，團隊隊員都需要在上面工作，所以也是需要同步
+  其他就視各團隊需要去執行同步了。
+
+  抓取分支
+  在一個開發團隊中，所有人都會往master及dev推送自己的修改，若有個新團隊成員A君出
+  現，A君可以使用clone
+  # git clone git@github.com:userName/myRepo.git
+  clone完成後，A君可以使用
+  # git branch 查看分支（應該是只能看到master分支）
+  此時若A君需要在dev分支上開發，就必須建立遠程origin的dev分支到本地，所以，可以使
+  用以下指令建立本地dev分支
+  # git checkout -b dev origin/dev
+  然後A君就可以在dev上繼續開發，並且不時的把dev分支push到遠程。
+  # git commit -m "add /usr /bin /dev"
+  # git push origin dev
+  此時你也向origin/dev 分支推送提交
+  # git add hello.java
+  # git commit -m "add java: hello"
+  # git push origin dev
+  此時會出現推送失敗，因為A君的最近提交和你正在推送的提交有衝突。
+  解決方法：
+  使用git pull把最新的提交從origin/dev抓下來，然後，在本地進行合併，解決衝突，
+  再推送
+  # git pull
+  可能pull也是會失敗，因為沒有指定本地dev分支與遠程origin/dev分支的鏈結，先設置
+  dev和origin/dev的鏈結。
+  # git branch --set-upstream dev origin/dev
+  # git pull
+  成功後，再解決衝突，然後再提交，再push
+  # git commit -m "merge & fix hello.java"
+  # git push origin dev
+  若在git push時，提示"no tracking information"，則代表本地分支和遠程分支的鏈結沒
+  有建立起來，可以使用
+  # git branch --set-upstream branch-name origin/branch-name
+
+  ==============================================================================
+  操作習慣
+  為避免多人協作時，太多的push/pull會造成混亂
+  建議作法：
+  1. 開發都在branch上完成，之後再切回master。
+  2. master先跟遠端同步(pull)，確認master的內容跟遠端一致
+  3. 再把剛才開發的branch merge 到master
+  4. 解決本機的衝突後再push到遠端
+
+  每個專案都會將source code分成2個部分：
+  1. master
+  2. develop
+  而這兩個部分就會成為專案中的2個主要分支(The main branch)
+  master ﹣ 主要用來release產品專用，需要嚴格控管
+  develop ﹣ 開發專用的分支。開發的過程中，需要有新功能，修正bug，就要使用這個分
+             支來做。
+  
+  除了以上2個主要分支外，專案還會包含一些Hotfix，Feature，Release等等狀況。
+  Hotfix - 用來修正產品的重大bug，所以一般都會由origin/master直接分支出來，修正之
+  後再merge回master及develop。
+  Feature - 用來開發產品新功能，一般會由develop分支出來，待開發完成後， 再直接
+  merge回develop。
+  Release ﹣ 用來為產品release做準備，通常由develop分支出來，然後進行一些產品
+  release 前的檔案置換／配置後，再merge回develop及master。
+  
+  ==============================================================================
+  常見問題:
+  [1] warning: LF will be replaced by CRLF 或 
+      fatal: CRLF would be replaced by LF
+      原因分析
+      CRLF -- Carriage-Return Line-Feed
+      "Enter" CR, ASCII 13, \r
+      "換行" LF, ASCII 10, \n
+      這兩個ASCII字元在螢幕上不會有任何輸出, 主要用來代表一行的結束.
+      在MF Windows的系統中, 是用CRLF(\r\n)來代表換行
+      在Linux/Unix系統中, 是用LF(\n)來代表換行
+      當文件中存在的換行符號為LF時, 執行git add後, 系統會提示將LF換成CRLF
+      或是
+      當文件中存在的換行符號CRLF時, 執行git add後, 系統會提示將CRLF換成LF
