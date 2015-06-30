@@ -1,0 +1,59 @@
+於Windows上使用ssh對Github進行操作
+
+Github提供兩種方式來進行遠端repor的操作
+  -- Http
+      每次push程式碼時都必須要輸入帳號密碼
+  -- ssh
+     只要設定過一次public key之後, 接下來進行任何操作都不需要再輸入帳號密碼
+
+使用ssh認證的設定步驟
+Step 1: Check for SSH keys
+首先必須先確認電腦中是否有已存在的SSH keys
+以MS Windows為例,
+$ ls -la /C/Users/YourName/.ssh
+id_rsa
+id_rsa.pub
+若有已存在的public及private key, 就不用再產生一次
+
+Step 2: Generate a new SSH key
+2.1. 複製以下命令, 並且記得置換正確的email address
+$ ssh-keygen -t rsa -b 4096 -C "Your_email@example.com"
+# Creates a new ssh key, using the provided email as a label
+# Generating public/private rsa key pair.
+
+2.2. 建議維持預設的檔案存放目錄
+Enter file in which to save the key (/Users/you/.ssh/id_rsa): [Press enter]
+
+2.3. 輸入"passphrase (通關密語)"
+       若有給通關密語, 則每回執行遠端操作時, 都要回答通關密語, 也可以不給, 直接按Enter跳過
+Enter passphrase (empty for no passphrase): [Type a passphrase]
+# Enter same passphrase again: [Type passphrase again]
+
+2.4. 確認key的產生
+Your identification has been saved in /Users/you/.ssh/id_rsa.
+# Your public key has been saved in /Users/you/.ssh/id_rsa.pub.
+# The key fingerprint is:
+# 01:0f:f4:3b:ca:85:d6:17:a1:7d:f0:68:9d:f0:a2:db your_email@example.com
+
+Step 3: Add your SSH key to your account
+3.1. 將public key的內容複製到剪貼簿
+$ clip < ~/.ssh/id_rsa.pub
+# Copies the contents of the id_rsa.pub file to your clipboard
+
+3.2. 將public key 複製到Github上
+  3.2.1. 進入github個人profile頁面，選擇左邊的SSH Keys，點選新增
+  3.2.2. 給一個名稱後, 將剛剛產生的public填入並儲存
+
+Step 4: Test the connection
+4.1. 執行以下命令
+$ ssh -T git@github.com
+# Attempts to ssh to GitHub
+
+4.2. 會收到以下警告訊息
+The authenticity of host 'github.com (207.97.227.239)' can't be established.
+# RSA key fingerprint is 16:27:ac:a5:76:28:2d:36:63:1b:56:4d:eb:df:a6:48.
+# Are you sure you want to continue connecting (yes/no)?
+輸入"yes"後, 應該會收到以下的訊息
+Hi username! You've successfully authenticated, but GitHub does not
+# provide shell access
+確認username是正確的
