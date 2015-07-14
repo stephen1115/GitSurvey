@@ -72,11 +72,11 @@ Install/Setup And Configure Git Server with Gitolite and GitWeb on CENTOS 7
         │[root@localhost ~]# git --version                                     │
         │git version 1.8.3.1                                                   │
         └──────────────────────────────────────────────────────────────────────┘
-        3.2.1. Gitolite套件安裝流程概說
-        3.2.2. 於欲安裝Gitolite套件的server上,先建立一個新帳戶, git。
-        3.2.3. 於git home directory中下載Gitolite套件
-        3.2.4. 安裝Gitolite套件
-        3.2.5. 產生/配置Gitolite管理員公鑰
+        3.1.2. Gitolite套件安裝流程概說
+               - 於欲安裝Gitolite套件的server上,先建立一個新帳戶, git。
+               - 於git home directory中下載Gitolite套件
+               - 安裝Gitolite套件
+               - 產生/配置Gitolite管理員公鑰
 
 4. Gitolite套件安裝
    4.1. 建立Gitolite 管理者帳號
