@@ -10,9 +10,46 @@ Install/Setup And Configure Git Server with Gitolite and GitWeb on CENTOS 7
         -- Gitolite可以管理"誰"可以存取哪個專案，並且，可以限制只能存取哪個
            branch等路徑
 
-2. Testing environment
+2. Gitolite and the Git control flow
+   ┌───────────────────────────────────────────────────────────────────┐
+   │  User's Workstation                  Git Server                   │
+   │  ┌──────────────┐                 ┌─────────────────────────┐     │
+   │  │  Git client  │                 │  git-uploa-pack         │     │
+   │  └──────────────┘                 │  (or git-receive-pack)  │     │
+   │    │                              └─────────────────────────┘     │
+   │    │                                │                             │
+   │    │ (git clone/fetch/push)         │                             │
+   │    │                                │                             │
+   │    │                                │                             │
+   │    │                                │                             │
+   │  ┌──────────────┐                 ┌──────────────┐                │
+   │  │     ssh      │───────────────  │     sshd     │                │
+   │  └──────────────┘                 └──────────────┘                │
+   └───────────────────────────────────────────────────────────────────┘
+
+   ┌───────────────────────────────────────────────────────────────────┐
+   │  User's Workstation                  Git Server                   │
+   │  ┌──────────────┐                 ┌─────────────────────────┐     │
+   │  │  Git client  │                 │  git-uploa-pack         │     │
+   │  └──────────────┘                 │  (or git-receive-pack)  │     │
+   │    │                              └─────────────────────────┘     │
+   │    │                                │                             │
+   │    │ (git clone/fetch/push)         │                             │
+   │    │                                │                             │
+   │    │                              ┌─────────────────────────┐     │
+   │    │                              │  gitolite-shell         │     │
+   │    │                              └─────────────────────────┘     │
+   │    │                                │                             │
+   │    │                                │                             │
+   │  ┌──────────────┐                 ┌──────────────┐                │
+   │  │     ssh      │───────────────  │     sshd     │                │
+   │  └──────────────┘                 └──────────────┘                │
+   └───────────────────────────────────────────────────────────────────┘
+
+3. Installing Gitolite
+   Preparing the server environment
    ═════════════════════════════════════════════════════════════════════════════
-   Package                    Version                                           
+   Package                    Version
    ─────────────────────────────────────────────────────────────────────────────
    VMware Workstation         8.0.2
    CentOS 64-bit              7.0.1406
@@ -28,25 +65,25 @@ Install/Setup And Configure Git Server with Gitolite and GitWeb on CENTOS 7
    GitWeb
      -- is used for viewing git repositories detail via Web Browser.
 
-3. 系統套件安裝
-   3.1. Git套件安裝
+   3.1. 系統套件安裝
+        3.1.1. Git套件安裝
         ┌──────────────────────────────────────────────────────────────────────┐
         │[root@localhost ~]# yum install git                                   │
         │[root@localhost ~]# git --version                                     │
         │git version 1.8.3.1                                                   │
         └──────────────────────────────────────────────────────────────────────┘
-        3.2. Gitolite套件安裝流程概說
-        3.2.1. 於欲安裝Gitolite套件的server上,先建立一個新帳戶, git。
-        3.2.2. 於git home directory中下載Gitolite套件
-        3.2.3. 安裝Gitolite套件
-        3.2.4. 產生/配置Gitolite管理員公鑰
+        3.2.1. Gitolite套件安裝流程概說
+        3.2.2. 於欲安裝Gitolite套件的server上,先建立一個新帳戶, git。
+        3.2.3. 於git home directory中下載Gitolite套件
+        3.2.4. 安裝Gitolite套件
+        3.2.5. 產生/配置Gitolite管理員公鑰
 
 4. Gitolite套件安裝
    4.1. 建立Gitolite 管理者帳號
         -- Gitolite 建議建立全新的管理者帳號來使用，為了方便記憶，通常會使用
            git或gitolite來當帳號ID。
         -- 若使用已存在的帳號來當管理者帳號，必須確認帳號的家目錄下不存在以下檔案
-           - ~/.gitolite.rc 
+           - ~/.gitolite.rc
            - ~/.gitolite
            - ~/repositories
            - ~/.ssh/authorized_keys.
@@ -55,14 +92,14 @@ Install/Setup And Configure Git Server with Gitolite and GitWeb on CENTOS 7
            │[root@localhost ~]# groupadd --system git                            │
            │[root@localhost ~]# useradd --system -G git git | passwd --stdin git │
            └─────────────────────────────────────────────────────────────────────┘
-           - 在Google上看到的資料，都將group及帳號建立成system group 及 
+           - 在Google上看到的資料，都將group及帳號建立成system group 及
              system user，好像可以不一定要將group及帳號都建立成system group及
              system user。
            - 也因為將group及帳號都建立成system group及system user，所以，會看到有
-             些人因為是要給system使用的帳號，而把git帳號的home directory建立在 
+             些人因為是要給system使用的帳號，而把git帳號的home directory建立在
              /home以外的地方來和一般使用者區別開來。
            - user 帳號不一定要給密碼，原因是之後會改成使用公鑰認證。
-        
+
    4.2. Gitolite安裝前準備
         -- 於git帳號的home directory下建立名為bin的目錄，用於存放Gitolite的執行檔
            ┌───────────────────────────────────────────────────────────────────┐
@@ -82,16 +119,16 @@ Install/Setup And Configure Git Server with Gitolite and GitWeb on CENTOS 7
            │bin  gitolite                                                      │
            └───────────────────────────────────────────────────────────────────┘
    4.3. Gitolite 安裝
-        -- Gitolite has one server side command: gitolite. 
+        -- Gitolite has one server side command: gitolite.
 
         -- "Installation" consists deciding where to put it:
            - Keep the sources anywhere and use the full path to run the gitolite
              command.
-           - Keep the sources anywhere and symlink just the gitolite program to 
+           - Keep the sources anywhere and symlink just the gitolite program to
              some directory on your $PATH.
-           - Copy the sources somewhere and use that path to run the gitolite 
+           - Copy the sources somewhere and use that path to run the gitolite
              command.
-           - Option 2 is the best for general use, but here's the scoop on all 
+           - Option 2 is the best for general use, but here's the scoop on all
              of them:
 
              # option 1
@@ -107,7 +144,7 @@ Install/Setup And Configure Git Server with Gitolite and GitWeb on CENTOS 7
              # option 3
              # (again, please supply a FULL path)
              gitolite/install -to /usr/local/gitolite/bin
-           - Creating a symlink doesn't need a separate program but 'install' 
+           - Creating a symlink doesn't need a separate program but 'install'
              also runs git describe to create a VERSION file, which can be very
              important if you want support
         -- 執行安裝
@@ -134,7 +171,7 @@ Install/Setup And Configure Git Server with Gitolite and GitWeb on CENTOS 7
            └───────────────────────────────────────────────────────────────────┘
             如果是首次使用CPAN就會進行一定的配置，在詢問是否自動配置時，輸入yes即
             可。
-           
+
             但使用CPAN時可能會出现錯誤
            ┌───────────────────────────────────────────────────────────────────┐
            │ Can't locate CPAN.pm in @INC                                      │
