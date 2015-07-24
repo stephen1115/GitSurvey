@@ -17,13 +17,13 @@ Install/Setup And Configure Git Server with Gitolite and GitWeb on CENTOS 7
    │  │  Git client  │                 │  git-uploa-pack         │     │
    │  └──────────────┘                 │  (or git-receive-pack)  │     │
    │    │                              └─────────────────────────┘     │
-   │    │                                │                             │
+   │    │                                ↑                             │
    │    │ (git clone/fetch/push)         │                             │
    │    │                                │                             │
    │    │                                │                             │
-   │    │                                │                             │
+   │    ↓                                │                             │
    │  ┌──────────────┐                 ┌──────────────┐                │
-   │  │     ssh      │───────────────  │     sshd     │                │
+   │  │     ssh      │───────────────＞│     sshd     │                │
    │  └──────────────┘                 └──────────────┘                │
    └───────────────────────────────────────────────────────────────────┘
 
@@ -33,16 +33,16 @@ Install/Setup And Configure Git Server with Gitolite and GitWeb on CENTOS 7
    │  │  Git client  │                 │  git-uploa-pack         │     │
    │  └──────────────┘                 │  (or git-receive-pack)  │     │
    │    │                              └─────────────────────────┘     │
-   │    │                                │                             │
+   │    │                                ↑                             │
    │    │ (git clone/fetch/push)         │                             │
    │    │                                │                             │
    │    │                              ┌─────────────────────────┐     │
    │    │                              │  gitolite-shell         │     │
    │    │                              └─────────────────────────┘     │
-   │    │                                │                             │
-   │    │                                │                             │
+   │    │                                ↑                             │
+   │    ↓                                │                             │
    │  ┌──────────────┐                 ┌──────────────┐                │
-   │  │     ssh      │───────────────  │     sshd     │                │
+   │  │     ssh      │───────────────＞│     sshd     │                │
    │  └──────────────┘                 └──────────────┘                │
    └───────────────────────────────────────────────────────────────────┘
 
@@ -90,7 +90,8 @@ Install/Setup And Configure Git Server with Gitolite and GitWeb on CENTOS 7
         -- 建立帳號
            ┌─────────────────────────────────────────────────────────────────────┐
            │[root@localhost ~]# groupadd --system git                            │
-           │[root@localhost ~]# useradd --system -G git git | passwd --stdin git │
+           │[root@localhost ~]# useradd --system -G git --shell "/bin/bash" git  │
+		   │                    | passwd --stdin git                             │
            └─────────────────────────────────────────────────────────────────────┘
            - 在Google上看到的資料，都將group及帳號建立成system group 及
              system user，好像可以不一定要將group及帳號都建立成system group及
@@ -98,7 +99,10 @@ Install/Setup And Configure Git Server with Gitolite and GitWeb on CENTOS 7
            - 也因為將group及帳號都建立成system group及system user，所以，會看到有
              些人因為是要給system使用的帳號，而把git帳號的home directory建立在
              /home以外的地方來和一般使用者區別開來。
-           - user 帳號不一定要給密碼，原因是之後會改成使用公鑰認證。
+           - user 帳號不一定要給密碼，原因是之後可以改成使用公鑰認證。
+		   - git 帳號必須給予一個可以執行 command 的 shell，但可放心所有 
+		     gitolite user 都只是虛擬帳號，他們會被導向到 gitolite-shell 這個 
+			 gitolite 提供的指令去，無法真的登入。
 
    4.2. Gitolite安裝前準備
         -- 於git帳號的home directory下建立名為bin的目錄，用於存放Gitolite的執行檔
@@ -195,38 +199,26 @@ Install/Setup And Configure Git Server with Gitolite and GitWeb on CENTOS 7
 
 5. Gitolite Setup
    5.1. 建立Gitolite管理員密鑰
-        -- 先前已經將git帳號定義為Gitolite的管理員帳號，因此就為git建立密鑰。
+        -- 為Gitolite管理員建立一組密鑰。
+		   $ ssh-keygen -t rsa -f <path>/<key_filename>
+		   例如：
 		   ┌───────────────────────────────────────────────────────────────────┐
-           │[git@localhost ~]$ ssh-keygen -t rsa -C "Gitolite admin"           │
-           │Generating public/private rsa key pair.                            │
-           │Enter file in which to save the key (/home/git/.ssh/id_rsa):       │
-           │Created directory '/home/git/.ssh'.                                │
-           │Enter passphrase (empty for no passphrase):                        │
-           │Enter same passphrase again:                                       │
-           │Your identification has been saved in /home/git/.ssh/id_rsa.       │
-           │Your public key has been saved in /home/git/.ssh/id_rsa.pub.       │
-           │The key fingerprint is:                                            │
-           │ce:b3:a4:95:fc:1f:d2:64:66:af:f3:50:c4:ad:93:59 Gitolite admin     │
-           │The key's randomart image is:                                      │
-           │+--[ RSA 2048]----+                                                │
-           │|                 |                                                │
-           │|             . . |                                                │
-           │|              o E|                                                │
-           │|             . = |                                                │
-           │|        S   = *  |                                                │
-           │|       + . * o . |                                                │
-           │|        O . + .  |                                                │
-           │|       + + ..+   |                                                │
-           │|      . . ..oo.  |                                                │
-           │+-----------------+                                                │
-		   │[git@localhost ~]$ mkdir -p tmp                                    │
-		   │[git@localhost ~]$ cp ./.ssh/id_rsa.pub ./tmp/gitolite_admin.pub   │
-           └───────────────────────────────────────────────────────────────────┘
+           │ $ ssh-keygen -t rsa -f ~/keys/gadmin -C "Gitolite admin"          │
+		   └───────────────────────────────────────────────────────────────────┘
+		   會產生 ~/keys/gadmin及~/keys/gadmin.pub兩個檔案，分別是 private key 
+		   與 public key。過程中會提示輸入 passphrase。passphrase 是用來加密 
+		   private key 的密碼，避免 private key 被竊時造成的安全性風險。若有輸入
+		   passphrase，則每次 push/pull 的時候需要輸入 passphrase，可以配合 
+		   ssh-add (Linux) 或 Pageant (Windows) 來避免每次都要打 passphrase。
+		   [注意]
+		   這裡所使用的 <key_filename>這個檔名就是 gitolite 管理員所使用的虛擬帳
+		   號。(非主機管理者也非 git 帳號管理者)
+		   
    5.2. 使用管理員公鑰初始化gitolite
         -- Gitolite 安裝完成後，需要使用剛剛建立的公鑰來將gitolite初始化，此公鑰
            將成為gitolite的第一個管理員
            ┌───────────────────────────────────────────────────────────────────────────────┐
-           │[git@localhost ~]$ ./bin/gitolite setup -pk ./tmp/gitolite_admin.pub           │
+           │[git@localhost ~]$ ./bin/gitolite setup -pk ./keys/gadmin.pub                  │
            │Initialized empty Git repository in /home/git/repositories/gitolite-admin.git/ │
            │Initialized empty Git repository in /home/git/repositories/testing.git/        │
            │WARNING: /home/git/.ssh/authorized_keys missing; creating a new one            │
@@ -237,3 +229,55 @@ Install/Setup And Configure Git Server with Gitolite and GitWeb on CENTOS 7
            - 初始化空的Git repository 於 /home/git/repositories/testing.git/
 
            到此，Gitolite的初始化已經完成
+		   [注意]
+		   由於gitolite是透過所使用的key來決定使用者是不是管理者，所以，若在~/.ssh底下的
+		   authorized_keys中不能存在有相同的public key，否則會出現
+		   FATAL error：「gadmin.pub maps to shell access, not admin.」這樣的錯誤。
+		   這也是說用來登入"git"帳號的key 和 gitolite 管理員的key不能同一把。
+		-- 安全性
+           初始化完成後，可以檢查 ~/.ssh/authorized_keys 會發現這個檔案被加入一些東西
+           ┌───────────────────────────────────────────────────────────────────────────────┐
+		   │# gitolite start                                                               │
+           │command="/home/git/gitolite/src/gitolite-shell gadmin",no-port-forwarding,     │
+		   │no-X11-forwarding,no-agent-forwarding,no-pty ssh-rsa <很長一串 public key>     │
+		   │<description>                                                                  │
+           │command="/home/git/gitolite/src/gitolite-shell <user>",no-port-forwarding,     │
+		   │no-X11-forwarding,no-agent-forwarding,no-pty ssh-rsa <很長一串 public key>     │
+		   │<description>                                                                  │
+		   │# gitolite end                                                                 │
+           └───────────────────────────────────────────────────────────────────────────────┘
+           - 前面加上的那個稱為 ssh forced command，可以限制 user 登入後執行的 command。
+		     也就是說，gitolite 在使用時，並沒有啟動 daemon，而是透過 ssh 連線，並轉介到 
+		     gl-auth-command 進行動作的。
+		   - gitolite 在運作時，都是使用git這個帳號，如果對安全性有很高的要求，可以盡量限縮
+		     這個帳號的權限。不過還是得給它一個 shell可以使用就是了，若將 shell 改成 
+			 /bin/false 或 /usr/sbin/nologin，結果操作就失敗了。
+           - 預設狀況下，透過 gl-setup 產生的 repository 與其他相關檔案，權限都是 700。
+		     也就是說，即使伺服器主機上有其他的使用者，如果他沒有管理者權限 (或是 sudo 權限)
+			 的話，也無法存取到那些受 gitolite 管轄的 repository。
+           - 管理者在進行設定時，最好確認使用者提供的 key 是否正確，可透過
+		      $ ssh-keygen -lf <pubkey_file>
+			 來取得 public key 的 fingerprint，並以其他管道與使用者對照確認，避免惡意攻擊。
+			 
+6. 初次使用
+   6.1. 對於gitolite管理員而言，必須先設定好 ssh host alias，之後還必須將 gitolite-admin 
+        給 clone 下來，才能繼續後面設定的動作。
+		6.1.1. 設定ssh host alias
+		       ┌───────────────────────────────────────────────────────────────────────────────┐
+			    $ vim ~/.ssh/config
+				Host gitolite
+				Hostname <ip>或<Server name>
+				User git
+				port 22
+				identityfile ~/.ssh/gadmin
+			   └───────────────────────────────────────────────────────────────────────────────┘
+			   這個設定的重點是指定連線時使用特定的 identity file (private key)，如此才能被 
+			   gitolite 認可為管理者 (gitolite 是看你用什麼 key 來決定你的身分)。
+		6.1.2. 取得管理gitolite的repository
+		       $ git clone gitolite:gitolite-admin
+			   這個 repository 紀錄了所有 gitolite 的權限資料，包含所有 user 的 public key 與 
+			   repository 的存取權限設定。
+			   gitolite-admin目錄下包括兩個子目錄 conf 及 keydir
+			   conf/gitolite.conf 中記載了所有專案的名稱以及每個 user 對專案的權限。
+			   而 keydir 中即為所有 user 的 keys。
+			   對 gitolite 的管理與設定都必須透過這個 repo 進行。
