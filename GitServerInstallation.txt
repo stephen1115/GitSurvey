@@ -281,3 +281,46 @@ Install/Setup And Configure Git Server with Gitolite and GitWeb on CENTOS 7
 			   conf/gitolite.conf 中記載了所有專案的名稱以及每個 user 對專案的權限。
 			   而 keydir 中即為所有 user 的 keys。
 			   對 gitolite 的管理與設定都必須透過這個 repo 進行。
+
+7. Users and Gitolite
+   7.1. Getting information from Gitolite
+        當使用者有權限可以存取Gitolite時, 使用者可以使用 info 這個命令來查詢使用者自己能存取哪些repo
+		$ ssh git@server information
+		
+   7.2.	Gitolite commands
+        Gitolite的命令格式 ssh git@server command-name command-arguments
+		Gitolite也提供了help命令可以查詢有哪些命令可以使用
+		$ ssh git@server help
+		
+		Gitolite 也對每一個命令提供了help說明, 例如要查看info命令的使用方式, 可以執行以下命令, 帶入-h參數
+		$ ssh git@server info -has
+   7.3. Authorization, not authentication
+        A couple of basic definitions.
+		Authentication is the process of verifying that you are who you claim to be.
+		Authorization is the process of determining what you want to do and deciding whether you're allowed to do it or not.
+		Authorization happens after authentication.
+		
+		Gitolite is only concerned with authorization; it does not do authentication. It leaves authentication up to an ssh server or a web server.
+		
+		ssh server uses the command option in the ssh authorized keys file($HOME/.ssh/authorized_keys) to invoke Gitolite and pass it the username.
+		Gitolite then decides whether this user is allowed to access this repository or not.
+		
+   7.4. Troubleshooting SSH issues
+        Duplicate public keys
+		[情境]
+		當使用者的public key 在安裝Gitolite前就已存在 authorized keys file中, 若於安裝Gitolite後, 又使用了同一把public key, 則在authorized key file中,
+		會出現兩次, 一次是原來就存在的部分, 另一次就是由Gitolite建立的伴隨command option出現.
+		
+		當同一把public key在authorized key file中出現兩次, ssh server只會拿取第一次出現的那把key來使用; 在這種情況下, 若用來存取shell的key放在Gitolite
+		之前, 則Gitolite將不會被啟動, 反之若Gitolite line 放在檔案的前面, 則會被當成要存取gitolite使用, 無法進行shell的存取.
+		
+		因此, 同一個使用者需要可以存取shell, 也需要可以存取gitolite的話, 則必須create不同的ssh key pair. 在擁有多組ssh key pair的client端, 可以使用
+		$HOME/.ssh/config file來管理
+		
+		Diagnosing public key problems
+		若需要診斷ssh的public key的問題, 可以使用sshkey-lint這個程式.
+		$ gitolite sshkeys-lint這個程式
+		
+		SSH best practice
+		有一個好的經驗法則, 就是不要允許任何使用者可以直接登入做shell access, 即使是gitolite admin也是; 若有需要登入shell進行維護作業, 可以先登入
+		其他的帳號, 再使用 su - git 的方式進入git帳號的shell.
