@@ -1,4 +1,4 @@
-Install/Setup And Configure Git Server with Gitolite and GitWeb on CENTOS 7
+Install/Setup And Configure Git Server with Gitolite and GitWeb on CENTOS 6.5
 
 1. 透過SSH搭建Git Server
    1.1. 若專案使用人數不多的情況下，可以使用最簡單的SSH連線方式，透過統一的git帳
@@ -258,21 +258,38 @@ Install/Setup And Configure Git Server with Gitolite and GitWeb on CENTOS 7
            - 管理者在進行設定時，最好確認使用者提供的 key 是否正確，可透過
 		      $ ssh-keygen -lf <pubkey_file>
 			 來取得 public key 的 fingerprint，並以其他管道與使用者對照確認，避免惡意攻擊。
+
+
+
 			 
 6. 初次使用
    6.1. 對於gitolite管理員而言，必須先設定好 ssh host alias，之後還必須將 gitolite-admin 
         給 clone 下來，才能繼續後面設定的動作。
 		6.1.1. 設定ssh host alias
-		       ┌───────────────────────────────────────────────────────────────────────────────┐
-			    $ vim ~/.ssh/config
-				Host gitolite
-				Hostname <ip>或<Server name>
-				User git
-				port 22
-				identityfile ~/.ssh/gadmin
-			   └───────────────────────────────────────────────────────────────────────────────┘
+		       ┌─────────────────────────────────────────────────────────────────────────┐
+			   │$ vim ~/.ssh/config                                                      │
+			   │Host gitolite                                                            │
+			   │Hostname <ip>或<Server name>                                             │
+			   │User git                                                                 │
+			   │port 22                                                                  │
+			   │identityfile ~/.ssh/gadmin                                               │
+			   └─────────────────────────────────────────────────────────────────────────┘
 			   這個設定的重點是指定連線時使用特定的 identity file (private key)，如此才能被 
 			   gitolite 認可為管理者 (gitolite 是看你用什麼 key 來決定你的身分)。
+			   
+			   按config file的設定, 進行一下測試
+			   ┌─────────────────────────────────────────────────────────────────────────┐
+			   │$ ssh gitolite                                                           │
+               │PTY allocation request failed on channel 0                               │
+               │hello gadmin, this is git@tppdcvut01 running gitolite3                   │
+			   │v3.6.3-11-g2417156 on git                                                │
+               │ 1.7.1                                                                   │
+               │                                                                         │
+               │ R W    gitolite-admin                                                   │
+               │ R W    testing                                                          │
+               │Connection to XXX.XXX.XXX.XXX closed.                                    │
+			   └─────────────────────────────────────────────────────────────────────────┘
+			   看到以上畫面代表成功了
 		6.1.2. 取得管理gitolite的repository
 		       $ git clone gitolite:gitolite-admin
 			   這個 repository 紀錄了所有 gitolite 的權限資料，包含所有 user 的 public key 與 
